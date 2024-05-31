@@ -6,8 +6,11 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 
 import com.project.banking.dto.AccountDTO;
+import com.project.banking.dto.TransferAmountDTO;
 import com.project.banking.entity.AccountEntity;
 import com.project.banking.exception.AccountException;
+import com.project.banking.exception.InsufficientBalanceException;
+import com.project.banking.exception.InvalidAmountTransferException;
 import com.project.banking.repository.AccountRepository;
 import com.project.banking.service.AccountService;
 
@@ -17,11 +20,9 @@ import jakarta.transaction.Transactional;
 @Transactional
 public class AccountServiceImpl implements AccountService{
 
-	//@Autowired
 	private final AccountRepository accountRepository;
 	
 	public AccountServiceImpl(AccountRepository accountRepository) {
-		//super();
 		this.accountRepository = accountRepository;
 	}
 
@@ -63,7 +64,7 @@ public class AccountServiceImpl implements AccountService{
 				.findById(id)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
 		if (accountEntity.getBalance() < amount) {
-			throw new AccountException("service.NOT_ENOUGH_BALANCE");
+			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
 		}
 		Double availableBalance = accountEntity.getBalance() - amount;
 		accountEntity.setBalance(availableBalance);
@@ -92,6 +93,32 @@ public class AccountServiceImpl implements AccountService{
 				.findById(id)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
 		accountRepository.deleteById(id);
+	}
+
+	@Override
+	public void transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException {
+		// TODO Auto-generated method stub
+		AccountEntity fromAccount = accountRepository
+				.findById(transferAmountDTO.fromAccountId())
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		AccountEntity toAccount = accountRepository
+				.findById(transferAmountDTO.toAccountId())
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		
+		if (transferAmountDTO.fromAccountId().equals(transferAmountDTO.toAccountId())) {
+			throw new InvalidAmountTransferException("service.SAME_ACCOUNT");
+		}
+		if (fromAccount.getBalance() < transferAmountDTO.transferAmount()) {
+			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
+		}
+		
+		Double debit = fromAccount.getBalance() - transferAmountDTO.transferAmount();
+		fromAccount.setBalance(debit);
+		Double credit = toAccount.getBalance() + transferAmountDTO.transferAmount();
+		toAccount.setBalance(credit);
+		
+		accountRepository.save(fromAccount);
+		accountRepository.save(toAccount);
 	}
 
 }
