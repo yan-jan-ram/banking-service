@@ -1,17 +1,22 @@
 package com.project.banking.serviceimpl;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
 import com.project.banking.dto.AccountDTO;
+import com.project.banking.dto.TransactionDTO;
+import com.project.banking.dto.TransactionType;
 import com.project.banking.dto.TransferAmountDTO;
 import com.project.banking.entity.AccountEntity;
+import com.project.banking.entity.TransactionEntity;
 import com.project.banking.exception.AccountException;
 import com.project.banking.exception.InsufficientBalanceException;
 import com.project.banking.exception.InvalidAmountTransferException;
 import com.project.banking.repository.AccountRepository;
+import com.project.banking.repository.TransactionRepository;
 import com.project.banking.service.AccountService;
 
 import jakarta.transaction.Transactional;
@@ -22,8 +27,12 @@ public class AccountServiceImpl implements AccountService{
 
 	private final AccountRepository accountRepository;
 	
-	public AccountServiceImpl(AccountRepository accountRepository) {
+	private final TransactionRepository transactionRepository;
+	
+	public AccountServiceImpl(AccountRepository accountRepository, 
+			TransactionRepository transactionRepository) {
 		this.accountRepository = accountRepository;
+		this.transactionRepository = transactionRepository;
 	}
 
 	@Override
@@ -54,6 +63,16 @@ public class AccountServiceImpl implements AccountService{
 		Double availableBalance = accountEntity.getBalance() + amount;
 		accountEntity.setBalance(availableBalance);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
+		
+		TransactionEntity transactionEntity = new TransactionEntity();
+		
+		transactionEntity.setAccountId(id);
+		transactionEntity.setAmount(amount);
+		transactionEntity.setTransactionType(TransactionType.DEPOSIT.toString());
+		transactionEntity.setTimestamp(LocalDateTime.now());
+		
+		transactionRepository.save(transactionEntity);
+		
 		return AccountDTO.prepareAccountDTO(savedEntity);
 	}
 
@@ -69,6 +88,16 @@ public class AccountServiceImpl implements AccountService{
 		Double availableBalance = accountEntity.getBalance() - amount;
 		accountEntity.setBalance(availableBalance);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
+		
+		TransactionEntity transactionEntity = new TransactionEntity();
+		
+		transactionEntity.setAccountId(id);
+		transactionEntity.setAmount(amount);
+		transactionEntity.setTransactionType(TransactionType.WITHDRAW.toString());
+		transactionEntity.setTimestamp(LocalDateTime.now());
+		
+		transactionRepository.save(transactionEntity);
+		
 		return AccountDTO.prepareAccountDTO(savedEntity);
 	}
 
@@ -79,11 +108,12 @@ public class AccountServiceImpl implements AccountService{
 		if (accounts.isEmpty()) {
 			throw new AccountException("service.NO_ACCOUNTS_FOUND");
 		}
-		List<AccountDTO> dtoList = accounts
+		List<AccountDTO> accountsList = accounts
 				.stream()
 				.map((account) -> AccountDTO.prepareAccountDTO(account))
 				.collect(Collectors.toList());
-		return dtoList;
+		
+		return accountsList;
 	}
 
 	@Override
@@ -117,8 +147,33 @@ public class AccountServiceImpl implements AccountService{
 		Double credit = toAccount.getBalance() + transferAmountDTO.transferAmount();
 		toAccount.setBalance(credit);
 		
+		TransactionEntity transactionEntity = new TransactionEntity();
+		
+		transactionEntity.setAccountId(transferAmountDTO.fromAccountId());
+		transactionEntity.setAmount(transferAmountDTO.transferAmount());
+		transactionEntity.setTransactionType(TransactionType.TRANSFER.toString());
+		transactionEntity.setTimestamp(LocalDateTime.now());
+		
+		transactionRepository.save(transactionEntity);
 		accountRepository.save(fromAccount);
 		accountRepository.save(toAccount);
+	}
+
+	@Override
+	public List<TransactionDTO> getTransactionHistory(Long accountId) throws AccountException {
+		// TODO Auto-generated method stub
+		List<TransactionEntity> transactions = transactionRepository.findByAccountIdOrderByTimestampDesc(accountId);
+		
+		if (transactions.isEmpty()) {
+			throw new AccountException("service.NO_TRANSACTION_HISTORY");
+		}
+		
+		List<TransactionDTO> transactionList = transactions
+				.stream()
+				.map((transaction) -> TransactionDTO.prepareTransactionDTO(transaction))
+				.collect(Collectors.toList());
+		
+		return transactionList;
 	}
 
 }

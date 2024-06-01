@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.project.banking.dto.AccountDTO;
+import com.project.banking.dto.TransactionDTO;
 import com.project.banking.dto.TransferAmountDTO;
 import com.project.banking.exception.AccountException;
 import com.project.banking.service.AccountService;
@@ -90,4 +91,12 @@ public class AccountController {
 		String message = environment.getProperty("API.TRANSFER_SUCCESS");
 		return new ResponseEntity<>(message, HttpStatus.OK);
 	}
+	
+	//http://localhost:8081/api/accounts/transactions/
+	@GetMapping(value = "/transactions/{id}")
+	public ResponseEntity<List<TransactionDTO>> getTransactionHistory(@PathVariable(value = "id") Long accountId) throws AccountException {
+		List<TransactionDTO> transactionList = accountService.getTransactionHistory(accountId);
+		return new ResponseEntity<>(transactionList, HttpStatus.OK);
+	}
+	
 }

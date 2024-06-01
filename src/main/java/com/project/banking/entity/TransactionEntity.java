@@ -1,5 +1,7 @@
 package com.project.banking.entity;
 
+import java.time.LocalDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -11,20 +13,19 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
 @Entity
-@Table(name = "accounts")
-public class AccountEntity {
+@Table(name = "transaction_history")
+public class TransactionEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	//@Column(name = "account_id")
+	@Column(name = "transaction_id")
 	private Long id;
+	private Long accountId;
+	private Double amount;
+	private String transactionType;
+	private LocalDateTime timestamp;
 	
-	@Column(name = "account_holder_name")
-	private String holderName;
-	
-	@Column
-	private Double balance;
 }
