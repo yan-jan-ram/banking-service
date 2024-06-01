@@ -15,7 +15,7 @@ import org.springframework.web.context.request.WebRequest;
 
 import com.project.banking.exception.AccountException;
 import com.project.banking.exception.InsufficientBalanceException;
-import com.project.banking.exception.InvalidAmountTransferException;
+import com.project.banking.exception.InvalidDataException;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -50,8 +50,8 @@ public class ExceptionControllerAdvice {
 		return new ResponseEntity<ErrorInfo>(errorInfo, HttpStatus.NOT_FOUND);
 	}
 	
-	@ExceptionHandler(InvalidAmountTransferException.class)
-	public ResponseEntity<ErrorInfo> transferAmountExceptionHandler(InvalidAmountTransferException exception, WebRequest webRequest) {
+	@ExceptionHandler(InvalidDataException.class)
+	public ResponseEntity<ErrorInfo> transferAmountExceptionHandler(InvalidDataException exception, WebRequest webRequest) {
 		ErrorInfo errorInfo = new ErrorInfo();
 		
 		errorInfo.setErrorCode(HttpStatus.BAD_REQUEST.value());

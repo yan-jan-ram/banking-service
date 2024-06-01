@@ -17,4 +17,5 @@ public interface AccountService {
 	public void deleteAccount(Long id) throws AccountException;
 	public void transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException;
 	public List<TransactionDTO> getTransactionHistory(Long accountId) throws AccountException;
+	public List<AccountDTO> createAccounts(List<AccountDTO> accountDTOs) throws AccountException;
 }

@@ -3,7 +3,6 @@ package com.project.banking.serviceimpl;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.springframework.stereotype.Service;
 
 import com.project.banking.dto.AccountDTO;
@@ -14,7 +13,7 @@ import com.project.banking.entity.AccountEntity;
 import com.project.banking.entity.TransactionEntity;
 import com.project.banking.exception.AccountException;
 import com.project.banking.exception.InsufficientBalanceException;
-import com.project.banking.exception.InvalidAmountTransferException;
+import com.project.banking.exception.InvalidDataException;
 import com.project.banking.repository.AccountRepository;
 import com.project.banking.repository.TransactionRepository;
 import com.project.banking.service.AccountService;
@@ -60,6 +59,11 @@ public class AccountServiceImpl implements AccountService{
 		AccountEntity accountEntity = accountRepository
 				.findById(id)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		
+		if (amount <= 0) {
+			throw new InvalidDataException("service.INVALID_AMOUNT");
+		}
+		
 		Double availableBalance = accountEntity.getBalance() + amount;
 		accountEntity.setBalance(availableBalance);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
@@ -82,9 +86,15 @@ public class AccountServiceImpl implements AccountService{
 		AccountEntity accountEntity = accountRepository
 				.findById(id)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		
 		if (accountEntity.getBalance() < amount) {
 			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
 		}
+		
+		if (amount <= 0) {
+			throw new InvalidDataException("service.INVALID_AMOUNT");
+		}
+		
 		Double availableBalance = accountEntity.getBalance() - amount;
 		accountEntity.setBalance(availableBalance);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
@@ -136,7 +146,7 @@ public class AccountServiceImpl implements AccountService{
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
 		
 		if (transferAmountDTO.fromAccountId().equals(transferAmountDTO.toAccountId())) {
-			throw new InvalidAmountTransferException("service.SAME_ACCOUNT");
+			throw new InvalidDataException("service.SAME_ACCOUNT");
 		}
 		if (fromAccount.getBalance() < transferAmountDTO.transferAmount()) {
 			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
@@ -174,6 +184,22 @@ public class AccountServiceImpl implements AccountService{
 				.collect(Collectors.toList());
 		
 		return transactionList;
+	}
+
+	@Override
+	public List<AccountDTO> createAccounts(List<AccountDTO> accountDTOs) throws AccountException {
+		// TODO Auto-generated method stub
+		List<AccountEntity> accountEntities = accountDTOs
+	            .stream()
+	            .map((account) -> AccountDTO.prepareAccountEntity(account))
+	            .collect(Collectors.toList());
+	    
+	    List<AccountEntity> savedEntities = accountRepository.saveAll(accountEntities);
+	    
+	    return savedEntities
+	    		.stream()
+	            .map(AccountDTO::prepareAccountDTO)
+	            .collect(Collectors.toList());
 	}
 
 }

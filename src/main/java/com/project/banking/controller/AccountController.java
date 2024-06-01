@@ -99,4 +99,11 @@ public class AccountController {
 		return new ResponseEntity<>(transactionList, HttpStatus.OK);
 	}
 	
+	//http://localhost:8081/api/accounts/bulk
+	@PostMapping(value = "/bulk", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<List<AccountDTO>> createAccounts(@RequestBody @Valid List<AccountDTO> accountDTOs) throws AccountException {
+	    List<AccountDTO> result = accountService.createAccounts(accountDTOs);
+	    return new ResponseEntity<>(result, HttpStatus.CREATED);
+	}
+
 }

@@ -21,7 +21,6 @@ public class AccountDTO {
 	public static AccountEntity prepareAccountEntity(AccountDTO accountDto) {
 		AccountEntity accountEntity = new AccountEntity();
 		
-		accountEntity.setId(accountDto.getId());
 		accountEntity.setHolderName(accountDto.getHolderName());
 		accountEntity.setBalance(accountDto.getBalance());
 		
