@@ -6,8 +6,8 @@ import org.aspectj.lang.annotation.AfterThrowing;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
 
-@Aspect
 @Component
+@Aspect
 public class LoggingAspect {
 
 	public static final Log LOGGER = LogFactory.getLog(LoggingAspect.class);

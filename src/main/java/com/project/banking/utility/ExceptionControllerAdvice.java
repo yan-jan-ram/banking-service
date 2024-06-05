@@ -51,7 +51,7 @@ public class ExceptionControllerAdvice {
 	}
 	
 	@ExceptionHandler(InvalidDataException.class)
-	public ResponseEntity<ErrorInfo> transferAmountExceptionHandler(InvalidDataException exception, WebRequest webRequest) {
+	public ResponseEntity<ErrorInfo> invalidDataExceptionHandler(InvalidDataException exception, WebRequest webRequest) {
 		ErrorInfo errorInfo = new ErrorInfo();
 		
 		errorInfo.setErrorCode(HttpStatus.BAD_REQUEST.value());
