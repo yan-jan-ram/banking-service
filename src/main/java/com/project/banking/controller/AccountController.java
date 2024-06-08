@@ -24,6 +24,7 @@ import com.project.banking.exception.AccountException;
 import com.project.banking.service.AccountService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 
 @RestController
 @RequestMapping(value = "/api/accounts")
@@ -46,26 +47,18 @@ public class AccountController {
 		return new ResponseEntity<>(accountDto, HttpStatus.CREATED);
 	}
 	
+	//http://localhost:8081/api/accounts/bulk
+	@PostMapping(value = "/bulk", consumes = "application/json", produces = "application/json")
+	public ResponseEntity<List<AccountDTO>> createAccounts(@RequestBody @Valid List<AccountDTO> accountDTOs) throws AccountException {
+	    List<AccountDTO> result = accountService.createAccounts(accountDTOs);
+	    return new ResponseEntity<>(result, HttpStatus.CREATED);
+	}
+	
 	//http://localhost:8081/api/accounts/get/
 	@GetMapping(value = "/get/{id}")
-	public ResponseEntity<AccountDTO> getAccountByid(@PathVariable Long id) throws AccountException {
-		AccountDTO accountDto = accountService.getAccountById(id);
-		return new ResponseEntity<>(accountDto, HttpStatus.OK);
-	}
-	
-	//http://localhost:8081/api/accounts/deposit/
-	@PutMapping(value = "/deposit/{id}")
-	public ResponseEntity<AccountDTO> depositAmount(@PathVariable Long id, @RequestBody @Valid Map<String, Double> request) throws AccountException {
-		Double amount = request.get("amount");
-		AccountDTO accountDto = accountService.depositAmmount(id, amount);
-		return new ResponseEntity<>(accountDto, HttpStatus.OK);
-	}
-	
-	//http://localhost:8081/api/accounts/withdraw/
-	@PutMapping(value = "/withdraw/{id}")
-	public ResponseEntity<AccountDTO> withdrawAmount(@PathVariable Long id, @RequestBody @Valid Map<String, Double> request) throws AccountException {
-		Double amount = request.get("amount");
-		AccountDTO accountDto = accountService.withdrawAmount(id, amount);
+	public ResponseEntity<AccountDTO> getAccountByid(@PathVariable("id")
+			@Min(value = 1, message = "{banking.account_id.invalid}") Long accountId) throws AccountException {
+		AccountDTO accountDto = accountService.getAccountById(accountId);
 		return new ResponseEntity<>(accountDto, HttpStatus.OK);
 	}
 	
@@ -76,10 +69,29 @@ public class AccountController {
 		return new ResponseEntity<>(dtos, HttpStatus.OK);
 	}
 	
+	//http://localhost:8081/api/accounts/deposit/
+	@PutMapping(value = "/deposit/{id}")
+	public ResponseEntity<AccountDTO> depositAmount(@PathVariable("id")
+			@Min(value = 1, message = "{banking.account_id.invalid}") Long accountId, @RequestBody @Valid Map<String, Double> request) throws AccountException {
+		Double amount = request.get("amount");
+		AccountDTO accountDto = accountService.depositAmmount(accountId, amount);
+		return new ResponseEntity<>(accountDto, HttpStatus.OK);
+	}
+	
+	//http://localhost:8081/api/accounts/withdraw/
+	@PutMapping(value = "/withdraw/{id}")
+	public ResponseEntity<AccountDTO> withdrawAmount(@PathVariable("id")
+			@Min(value = 1, message = "{banking.account_id.invalid}") Long accountId, @RequestBody @Valid Map<String, Double> request) throws AccountException {
+		Double amount = request.get("amount");
+		AccountDTO accountDto = accountService.withdrawAmount(accountId, amount);
+		return new ResponseEntity<>(accountDto, HttpStatus.OK);
+	}
+	
 	//http://localhost:8081/api/accounts/delete/
 	@DeleteMapping(value = "delete/{id}")
-	public ResponseEntity<String> deleteAccount(@PathVariable Long id) throws AccountException {
-		accountService.deleteAccount(id);
+	public ResponseEntity<String> deleteAccount(@PathVariable("id")
+			@Min(value = 1, message = "{banking.account_id.invalid}") Long accountId) throws AccountException {
+		accountService.deleteAccount(accountId);
 		String message = environment.getProperty("API.DELETE_SUCCESS");
 		return new ResponseEntity<>(message, HttpStatus.OK);
 	}
@@ -94,16 +106,10 @@ public class AccountController {
 	
 	//http://localhost:8081/api/accounts/transactions/
 	@GetMapping(value = "/transactions/{id}")
-	public ResponseEntity<List<TransactionDTO>> getTransactionHistory(@PathVariable(value = "id") Long accountId) throws AccountException {
+	public ResponseEntity<List<TransactionDTO>> getTransactionHistory(@PathVariable("id") 
+	@Min(value = 1, message = "{banking.account_id.invalid}") Long accountId) throws AccountException {
 		List<TransactionDTO> transactionList = accountService.getTransactionHistory(accountId);
 		return new ResponseEntity<>(transactionList, HttpStatus.OK);
-	}
-	
-	//http://localhost:8081/api/accounts/bulk
-	@PostMapping(value = "/bulk", consumes = "application/json", produces = "application/json")
-	public ResponseEntity<List<AccountDTO>> createAccounts(@RequestBody @Valid List<AccountDTO> accountDTOs) throws AccountException {
-	    List<AccountDTO> result = accountService.createAccounts(accountDTOs);
-	    return new ResponseEntity<>(result, HttpStatus.CREATED);
 	}
 
 }

@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class AccountDTO {
 
-	private Long id;
+	private Long accountId;
 	
 	@NotNull(message = "{banking.holder_name.absent}")
 	@Pattern(regexp = "([A-Z][a-z]+)+([ ]+[A-Z][a-z]*)*", message = "{banking.holder_name.invalid}")
@@ -30,7 +30,7 @@ public class AccountDTO {
 	public static AccountDTO prepareAccountDTO(AccountEntity accountEntity) {
 		AccountDTO accountDto = new AccountDTO();
 		
-		accountDto.setId(accountEntity.getId());
+		accountDto.setAccountId(accountEntity.getAccountId());
 		accountDto.setHolderName(accountEntity.getHolderName());
 		accountDto.setBalance(accountEntity.getBalance());
 		

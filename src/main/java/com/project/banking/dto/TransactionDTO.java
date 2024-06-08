@@ -9,7 +9,7 @@ import lombok.Data;
 @Data
 public class TransactionDTO {
 
-	private Long id;
+	private Long transactionId;
 	private Long accountId;
 	private Double amount;
 	private String transactionType;
@@ -18,7 +18,7 @@ public class TransactionDTO {
 	public static TransactionDTO prepareTransactionDTO(TransactionEntity transactionEntity) {
 		TransactionDTO transactionDTO = new TransactionDTO();
 		
-		transactionDTO.setId(transactionEntity.getId());
+		transactionDTO.setTransactionId(transactionEntity.getTransactionId());
 		transactionDTO.setAccountId(transactionEntity.getAccountId());
 		transactionDTO.setAmount(transactionEntity.getAmount());
 		transactionDTO.setTransactionType(transactionEntity.getTransactionType());

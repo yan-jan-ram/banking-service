@@ -48,75 +48,33 @@ public class AccountServiceImpl implements AccountService{
 		
 		return AccountDTO.prepareAccountDTO(savedEntity);
 	}
+	
+	@Override
+	public List<AccountDTO> createAccounts(List<AccountDTO> accountDTOs) throws AccountException {
+		// TODO Auto-generated method stub
+		List<AccountEntity> accountEntities = accountDTOs
+	            .stream()
+	            .map((account) -> AccountDTO.prepareAccountEntity(account))
+	            .collect(Collectors.toList());
+	    
+	    List<AccountEntity> savedEntities = accountRepository.saveAll(accountEntities);
+	    
+	    return savedEntities
+	    		.stream()
+	            .map(AccountDTO::prepareAccountDTO)
+	            .collect(Collectors.toList());
+	}
 
 	@Override
-	public AccountDTO getAccountById(Long id) throws AccountException{
+	public AccountDTO getAccountById(Long accountId) throws AccountException{
 		// TODO Auto-generated method stub
 		AccountEntity accountEntity = accountRepository
-				.findById(id)
+				.findById(accountId)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
 		
 		return AccountDTO.prepareAccountDTO(accountEntity);
 	}
-
-	@Override
-	public AccountDTO depositAmmount(Long id, Double amount) throws AccountException {
-		// TODO Auto-generated method stub
-		AccountEntity accountEntity = accountRepository
-				.findById(id)
-				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		
-		if (amount <= 0) {
-			throw new InvalidDataException("service.INVALID_AMOUNT");
-		}
-		
-		Double availableBalance = accountEntity.getBalance() + amount;
-		accountEntity.setBalance(availableBalance);
-		AccountEntity savedEntity = accountRepository.save(accountEntity);
-		
-		TransactionEntity transactionEntity = new TransactionEntity();
-		
-		transactionEntity.setAccountId(id);
-		transactionEntity.setAmount(amount);
-		transactionEntity.setTransactionType(TransactionType.DEPOSIT.toString());
-		transactionEntity.setTimestamp(LocalDateTime.now());
-		
-		transactionRepository.save(transactionEntity);
-		
-		return AccountDTO.prepareAccountDTO(savedEntity);
-	}
-
-	@Override
-	public AccountDTO withdrawAmount(Long id, Double amount) throws AccountException {
-		// TODO Auto-generated method stub
-		AccountEntity accountEntity = accountRepository
-				.findById(id)
-				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		
-		if (accountEntity.getBalance() < amount) {
-			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
-		}
-		
-		if (amount <= 0) {
-			throw new InvalidDataException("service.INVALID_AMOUNT");
-		}
-		
-		Double availableBalance = accountEntity.getBalance() - amount;
-		accountEntity.setBalance(availableBalance);
-		AccountEntity savedEntity = accountRepository.save(accountEntity);
-		
-		TransactionEntity transactionEntity = new TransactionEntity();
-		
-		transactionEntity.setAccountId(id);
-		transactionEntity.setAmount(amount);
-		transactionEntity.setTransactionType(TransactionType.WITHDRAW.toString());
-		transactionEntity.setTimestamp(LocalDateTime.now());
-		
-		transactionRepository.save(transactionEntity);
-		
-		return AccountDTO.prepareAccountDTO(savedEntity);
-	}
-
+	
 	@Override
 	public List<AccountDTO> getAllAccounts() throws AccountException {
 		// TODO Auto-generated method stub
@@ -133,12 +91,70 @@ public class AccountServiceImpl implements AccountService{
 	}
 
 	@Override
-	public void deleteAccount(Long id) throws AccountException {
+	public AccountDTO depositAmmount(Long accountId, Double amount) throws AccountException {
+		// TODO Auto-generated method stub
+		AccountEntity accountEntity = accountRepository
+				.findById(accountId)
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		
+		if (amount <= 0) {
+			throw new InvalidDataException("service.INVALID_AMOUNT");
+		}
+		
+		Double availableBalance = accountEntity.getBalance() + amount;
+		accountEntity.setBalance(availableBalance);
+		AccountEntity savedEntity = accountRepository.save(accountEntity);
+		
+		TransactionEntity transactionEntity = new TransactionEntity();
+		
+		transactionEntity.setAccountId(accountId);
+		transactionEntity.setAmount(amount);
+		transactionEntity.setTransactionType(TransactionType.DEPOSIT.toString());
+		transactionEntity.setTimestamp(LocalDateTime.now());
+		
+		transactionRepository.save(transactionEntity);
+		
+		return AccountDTO.prepareAccountDTO(savedEntity);
+	}
+
+	@Override
+	public AccountDTO withdrawAmount(Long accountId, Double amount) throws AccountException {
+		// TODO Auto-generated method stub
+		AccountEntity accountEntity = accountRepository
+				.findById(accountId)
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		
+		if (accountEntity.getBalance() < amount) {
+			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
+		}
+		
+		if (amount <= 0) {
+			throw new InvalidDataException("service.INVALID_AMOUNT");
+		}
+		
+		Double availableBalance = accountEntity.getBalance() - amount;
+		accountEntity.setBalance(availableBalance);
+		AccountEntity savedEntity = accountRepository.save(accountEntity);
+		
+		TransactionEntity transactionEntity = new TransactionEntity();
+		
+		transactionEntity.setAccountId(accountId);
+		transactionEntity.setAmount(amount);
+		transactionEntity.setTransactionType(TransactionType.WITHDRAW.toString());
+		transactionEntity.setTimestamp(LocalDateTime.now());
+		
+		transactionRepository.save(transactionEntity);
+		
+		return AccountDTO.prepareAccountDTO(savedEntity);
+	}
+
+	@Override
+	public void deleteAccount(Long accountId) throws AccountException {
 		// TODO Auto-generated method stub
 		accountRepository
-				.findById(id)
+				.findById(accountId)
 				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		accountRepository.deleteById(id);
+		accountRepository.deleteById(accountId);
 	}
 
 	@Override
@@ -190,22 +206,6 @@ public class AccountServiceImpl implements AccountService{
 				.collect(Collectors.toList());
 		
 		return transactionList;
-	}
-
-	@Override
-	public List<AccountDTO> createAccounts(List<AccountDTO> accountDTOs) throws AccountException {
-		// TODO Auto-generated method stub
-		List<AccountEntity> accountEntities = accountDTOs
-	            .stream()
-	            .map((account) -> AccountDTO.prepareAccountEntity(account))
-	            .collect(Collectors.toList());
-	    
-	    List<AccountEntity> savedEntities = accountRepository.saveAll(accountEntities);
-	    
-	    return savedEntities
-	    		.stream()
-	            .map(AccountDTO::prepareAccountDTO)
-	            .collect(Collectors.toList());
 	}
 
 }

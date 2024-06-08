@@ -21,8 +21,8 @@ public class TransactionEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "transaction_id")
-	private Long id;
+	@Column
+	private Long transactionId;
 	private Long accountId;
 	private Double amount;
 	private String transactionType;

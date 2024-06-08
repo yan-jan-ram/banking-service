@@ -19,8 +19,8 @@ public class AccountEntity {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	//@Column(name = "account_id")
-	private Long id;
+	@Column
+	private Long accountId;
 	
 	@Column(name = "account_holder_name")
 	private String holderName;
