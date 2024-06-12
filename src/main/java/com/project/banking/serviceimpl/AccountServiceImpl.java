@@ -37,11 +37,6 @@ public class AccountServiceImpl implements AccountService{
 	@Override
 	public AccountDTO createAccount(AccountDTO accountDto) throws AccountException{
 		// TODO Auto-generated method stub
-//		if(accountRepository
-//				.findById(accountDto.getId())
-//				.isPresent()) {
-//			throw new AccountException("service.ACCOUNT_ALREADY_EXISTS");
-//		}
 		
 		AccountEntity accountEntity = AccountDTO.prepareAccountEntity(accountDto);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
