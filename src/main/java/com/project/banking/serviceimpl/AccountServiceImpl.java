@@ -37,7 +37,6 @@ public class AccountServiceImpl implements AccountService{
 	@Override
 	public AccountDTO createAccount(AccountDTO accountDto) throws AccountException{
 		// TODO Auto-generated method stub
-		
 		AccountEntity accountEntity = AccountDTO.prepareAccountEntity(accountDto);
 		AccountEntity savedEntity = accountRepository.save(accountEntity);
 		
@@ -74,6 +73,7 @@ public class AccountServiceImpl implements AccountService{
 	public List<AccountDTO> getAllAccounts() throws AccountException {
 		// TODO Auto-generated method stub
 		List<AccountEntity> accounts = accountRepository.findAll();
+		
 		if (accounts.isEmpty()) {
 			throw new AccountException("service.NO_ACCOUNTS_FOUND");
 		}
@@ -84,9 +84,23 @@ public class AccountServiceImpl implements AccountService{
 		
 		return accountsList;
 	}
+	
+	@Override
+	public AccountDTO updateAccount(Long accountId, AccountDTO accountDto) throws AccountException {
+		// TODO Auto-generated method stub
+		AccountEntity accountEntity = accountRepository
+				.findById(accountId)
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		accountEntity.setHolderName(accountDto.getHolderName());
+		accountEntity.setBalance(accountDto.getBalance());
+		
+		AccountEntity savedEntity = accountRepository.save(accountEntity);
+		
+		return AccountDTO.prepareAccountDTO(savedEntity);
+	}
 
 	@Override
-	public AccountDTO depositAmmount(Long accountId, Double amount) throws AccountException {
+	public AccountDTO depositAmount(Long accountId, Double amount) throws AccountException {
 		// TODO Auto-generated method stub
 		AccountEntity accountEntity = accountRepository
 				.findById(accountId)
