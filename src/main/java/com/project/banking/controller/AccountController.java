@@ -48,6 +48,7 @@ public class AccountController {
     public ResponseEntity<AccountDTO> createAccount(
             @RequestBody @Valid AccountDTO accountDTO) throws AccountException {
         AccountDTO accountDto = accountService.createAccount(accountDTO);
+        
         return new ResponseEntity<>(accountDto, HttpStatus.CREATED);
     }
     
@@ -57,6 +58,7 @@ public class AccountController {
     public ResponseEntity<List<AccountDTO>> createAccounts(
             @RequestBody @Valid List<AccountDTO> accountDTOs) throws AccountException {
         List<AccountDTO> result = accountService.createAccounts(accountDTOs);
+        
         return new ResponseEntity<>(result, HttpStatus.CREATED);
     }
     
@@ -67,6 +69,7 @@ public class AccountController {
             @PathVariable("id") @Min(value = 1, message = "{banking.account_id.invalid}") 
             Long accountId) throws AccountException {
         AccountDTO accountDto = accountService.getAccountById(accountId);
+        
         return new ResponseEntity<>(accountDto, HttpStatus.OK);
     }
     
@@ -75,6 +78,7 @@ public class AccountController {
     @GetMapping(value = "/getAll")
     public ResponseEntity<List<AccountDTO>> getAllAccounts() throws AccountException {
         List<AccountDTO> dtos = accountService.getAllAccounts();
+        
         return new ResponseEntity<>(dtos, HttpStatus.OK);
     }
     
@@ -85,7 +89,20 @@ public class AccountController {
             @PathVariable("id") @Min(value = 1, message = "{banking.account_id.invalid}") 
             Long accountId, @RequestBody @Valid AccountDTO accountDto) throws AccountException {
         AccountDTO accountDTO = accountService.updateAccount(accountId, accountDto);
+        
         return new ResponseEntity<>(accountDTO, HttpStatus.OK);
+    }
+    
+    // Delete account
+    // http://localhost:8081/api/accounts/delete/{id}
+    @DeleteMapping(value = "delete/{id}")
+    public ResponseEntity<String> deleteAccount(
+            @PathVariable("id") @Min(value = 1, message = "{banking.account_id.invalid}") 
+            Long accountId) throws AccountException {
+        accountService.deleteAccount(accountId);
+        String message = environment.getProperty("API.DELETE_SUCCESS");
+        
+        return new ResponseEntity<>(message, HttpStatus.OK);
     }
     
     // Deposit amount
@@ -96,6 +113,7 @@ public class AccountController {
             Long accountId, @RequestBody @Valid Map<String, Double> request) throws AccountException {
         Double amount = request.get("amount");
         AccountDTO accountDto = accountService.depositAmount(accountId, amount);
+        
         return new ResponseEntity<>(accountDto, HttpStatus.OK);
     }
     
@@ -107,28 +125,19 @@ public class AccountController {
             Long accountId, @RequestBody @Valid Map<String, Double> request) throws AccountException {
         Double amount = request.get("amount");
         AccountDTO accountDto = accountService.withdrawAmount(accountId, amount);
+        
         return new ResponseEntity<>(accountDto, HttpStatus.OK);
-    }
-    
-    // Delete account
-    // http://localhost:8081/api/accounts/delete/{id}
-    @DeleteMapping(value = "delete/{id}")
-    public ResponseEntity<String> deleteAccount(
-            @PathVariable("id") @Min(value = 1, message = "{banking.account_id.invalid}") 
-            Long accountId) throws AccountException {
-        accountService.deleteAccount(accountId);
-        String message = environment.getProperty("API.DELETE_SUCCESS");
-        return new ResponseEntity<>(message, HttpStatus.OK);
     }
     
     // Transfer amount
     // http://localhost:8081/api/accounts/transfer
     @PostMapping(value = "/transfer")
-    public ResponseEntity<String> transferAmount(
+    public ResponseEntity<List<AccountDTO>> transferAmount(
             @RequestBody @Valid TransferAmountDTO transferAmountDTO) throws AccountException {
-        accountService.transferAmount(transferAmountDTO);
-        String message = environment.getProperty("API.TRANSFER_SUCCESS");
-        return new ResponseEntity<>(message, HttpStatus.OK);
+        List<AccountDTO> updatedAccounts = accountService.transferAmount(transferAmountDTO);
+        // String message = environment.getProperty("API.TRANSFER_SUCCESS");
+
+        return new ResponseEntity<>(updatedAccounts, HttpStatus.OK);
     }
     
     // Get transaction history
@@ -140,4 +149,14 @@ public class AccountController {
         List<TransactionDTO> transactionList = accountService.getTransactionHistory(accountId);
         return new ResponseEntity<>(transactionList, HttpStatus.OK);
     }
+    
+    // Get all transactions history
+    // http://localhost:8081/api/accounts/transactions
+    @GetMapping(value = "/transactions")
+    public ResponseEntity<List<TransactionDTO>> getAllTransactions() throws AccountException {
+		List<TransactionDTO> transactionList = accountService.getAllTransactions();
+		
+		return new ResponseEntity<>(transactionList, HttpStatus.OK);
+	}
+    
 }

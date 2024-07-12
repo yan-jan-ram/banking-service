@@ -98,6 +98,15 @@ public class AccountServiceImpl implements AccountService{
 		
 		return AccountDTO.prepareAccountDTO(savedEntity);
 	}
+	
+	@Override
+	public void deleteAccount(Long accountId) throws AccountException {
+		// TODO Auto-generated method stub
+		accountRepository
+				.findById(accountId)
+				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+		accountRepository.deleteById(accountId);
+	}
 
 	@Override
 	public AccountDTO depositAmount(Long accountId, Double amount) throws AccountException {
@@ -158,52 +167,68 @@ public class AccountServiceImpl implements AccountService{
 	}
 
 	@Override
-	public void deleteAccount(Long accountId) throws AccountException {
-		// TODO Auto-generated method stub
-		accountRepository
-				.findById(accountId)
-				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		accountRepository.deleteById(accountId);
+	public List<AccountDTO> transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException {
+	    AccountEntity fromAccount = accountRepository.findById(transferAmountDTO.fromAccountId())
+	            .orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+
+	    AccountEntity toAccount = accountRepository.findById(transferAmountDTO.toAccountId())
+	            .orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
+
+	    if (transferAmountDTO.fromAccountId().equals(transferAmountDTO.toAccountId())) {
+	        throw new InvalidDataException("service.SAME_ACCOUNT");
+	    }
+
+	    if (fromAccount.getBalance() < transferAmountDTO.transferAmount()) {
+	        throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
+	    }
+
+	    Double debit = fromAccount.getBalance() - transferAmountDTO.transferAmount();
+	    fromAccount.setBalance(debit);
+
+	    Double credit = toAccount.getBalance() + transferAmountDTO.transferAmount();
+	    toAccount.setBalance(credit);
+
+	    accountRepository.save(fromAccount);
+	    accountRepository.save(toAccount);
+
+	    TransactionEntity transactionEntity = new TransactionEntity();
+	    transactionEntity.setAccountId(transferAmountDTO.fromAccountId());
+	    transactionEntity.setAmount(transferAmountDTO.transferAmount());
+	    transactionEntity.setTransactionType(TransactionType.TRANSFER.toString());
+	    transactionEntity.setTimestamp(LocalDateTime.now());
+	    transactionRepository.save(transactionEntity);
+
+	    List<AccountEntity> updatedAccounts = accountRepository.findAll();
+
+	    List<AccountDTO> updatedAccountDTOs = updatedAccounts.stream()
+	            .map(AccountDTO::prepareAccountDTO)
+	            .collect(Collectors.toList());
+
+	    return updatedAccountDTOs;
 	}
 
-	@Override
-	public void transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException {
-		// TODO Auto-generated method stub
-		AccountEntity fromAccount = accountRepository
-				.findById(transferAmountDTO.fromAccountId())
-				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		AccountEntity toAccount = accountRepository
-				.findById(transferAmountDTO.toAccountId())
-				.orElseThrow(() -> new AccountException("service.ACCOUNT_NOT_FOUND"));
-		
-		if (transferAmountDTO.fromAccountId().equals(transferAmountDTO.toAccountId())) {
-			throw new InvalidDataException("service.SAME_ACCOUNT");
-		}
-		if (fromAccount.getBalance() < transferAmountDTO.transferAmount()) {
-			throw new InsufficientBalanceException("service.NOT_ENOUGH_BALANCE");
-		}
-		
-		Double debit = fromAccount.getBalance() - transferAmountDTO.transferAmount();
-		fromAccount.setBalance(debit);
-		Double credit = toAccount.getBalance() + transferAmountDTO.transferAmount();
-		toAccount.setBalance(credit);
-		
-		TransactionEntity transactionEntity = new TransactionEntity();
-		
-		transactionEntity.setAccountId(transferAmountDTO.fromAccountId());
-		transactionEntity.setAmount(transferAmountDTO.transferAmount());
-		transactionEntity.setTransactionType(TransactionType.TRANSFER.toString());
-		transactionEntity.setTimestamp(LocalDateTime.now());
-		
-		transactionRepository.save(transactionEntity);
-		accountRepository.save(fromAccount);
-		accountRepository.save(toAccount);
-	}
 
 	@Override
 	public List<TransactionDTO> getTransactionHistory(Long accountId) throws AccountException {
 		// TODO Auto-generated method stub
 		List<TransactionEntity> transactions = transactionRepository.findByAccountIdOrderByTimestampDesc(accountId);
+		
+		if (transactions.isEmpty()) {
+			throw new AccountException("service.NO_TRANSACTION_HISTORY");
+		}
+		
+		List<TransactionDTO> transactionList = transactions
+				.stream()
+				.map((transaction) -> TransactionDTO.prepareTransactionDTO(transaction))
+				.collect(Collectors.toList());
+		
+		return transactionList;
+	}
+
+	@Override
+	public List<TransactionDTO> getAllTransactions() throws AccountException {
+		// TODO Auto-generated method stub
+		List<TransactionEntity> transactions = transactionRepository.findAll();
 		
 		if (transactions.isEmpty()) {
 			throw new AccountException("service.NO_TRANSACTION_HISTORY");

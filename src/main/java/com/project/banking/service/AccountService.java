@@ -14,9 +14,10 @@ public interface AccountService {
 	public AccountDTO getAccountById(Long accountId) throws AccountException;
 	public List<AccountDTO> getAllAccounts() throws AccountException;
 	public AccountDTO updateAccount(Long accountId, AccountDTO accountDto) throws AccountException;
+	public void deleteAccount(Long accountId) throws AccountException;
 	public AccountDTO depositAmount(Long accountId, Double amount) throws AccountException;
 	public AccountDTO withdrawAmount(Long accountId, Double amount) throws AccountException;
-	public void deleteAccount(Long accountId) throws AccountException;
-	public void transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException;
+	public List<AccountDTO> transferAmount(TransferAmountDTO transferAmountDTO) throws AccountException;
 	public List<TransactionDTO> getTransactionHistory(Long accountId) throws AccountException;
+	public List<TransactionDTO> getAllTransactions() throws AccountException;
 }
